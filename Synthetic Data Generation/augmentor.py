@@ -1,17 +1,16 @@
+# --------------------------
+# Augmentor script Marçal 
+# https://github.com/omni-us/research-seq2seq-HTR/blob/master/marcalAugmentor.py
+# --------------------------
+
+import cv2
+import numpy as np
+import random
+
 def augmentor(img):
-    """
-    Fixed augmentor function with proper numpy array handling
-    """
-    # Ensure input is a numpy array
-    if not isinstance(img, np.ndarray):
-        img = np.array(img)
-    
-    # Ensure it's the right data type
-    img = img.astype(np.uint8)
-    
     TH, TW = img.shape
 
-    param_gamma_low = 0.3
+    param_gamma_low = .3
     param_gamma_high = 2
     param_mean_gaussian_noise = 0
     param_sigma_gaussian_noise = 100**0.5
@@ -21,10 +20,10 @@ def augmentor(img):
     param_kanungo_beta0 = 1
     param_kanungo_mu = 0
     param_kanungo_k = 2
-    param_min_shear = -0.5
-    param_max_shear = 0.25
+    param_min_shear = -.5
+    param_max_shear = .25
     param_rotation = 3
-    param_scale = 0.2
+    param_scale = .2
     param_movement_BB = 6
 
     # Add gaussian noise
@@ -32,35 +31,25 @@ def augmentor(img):
     gauss = gauss.reshape(TH, TW)
     gaussiannoise = np.uint8(np.clip(np.float32(img) + gauss, 0, 255))
 
-    # Ensure gaussiannoise is a proper numpy array with correct dtype
-    gaussiannoise = np.asarray(gaussiannoise, dtype=np.uint8)
-
-    # Randomly erode, dilate or nothing
+    # Randomly erode or dilate
     kernel = np.ones((3, 3), np.uint8)
     a = random.choice([2, 3])
-    
-    if a == 1:
-        gaussiannoise = cv2.dilate(gaussiannoise, kernel, iterations=1)
-    elif a == 2:
+    if a == 2:
         gaussiannoise = cv2.erode(gaussiannoise, kernel, iterations=1)
 
     # Add random gamma correction
     gamma = np.random.uniform(param_gamma_low, param_gamma_high)
     invGamma = 1.0 / gamma
-    table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+    table = np.array([((i / 255.0) ** invGamma) * 255
+                      for i in np.arange(0, 256)]).astype("uint8")
     gammacorrected = cv2.LUT(np.uint8(gaussiannoise), table)
 
     # Binarize image with Otsu
     otsu_th, binarized = cv2.threshold(gammacorrected, 0, 1, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     # Kanungo noise
-    try:
-        dist = cv2.distanceTransform(1 - binarized, cv2.DIST_L1, 3)
-        dist2 = cv2.distanceTransform(binarized, cv2.DIST_L1, 3)
-    except:
-        # Fallback if DIST_L1 doesn't work
-        dist = cv2.distanceTransform(1 - binarized, cv2.DIST_L2, 3)
-        dist2 = cv2.distanceTransform(binarized, cv2.DIST_L2, 3)
+    dist = cv2.distanceTransform(1 - binarized, cv2.DIST_L1, 3)
+    dist2 = cv2.distanceTransform(binarized, cv2.DIST_L1, 3)
 
     dist = dist.astype('float64')
     dist2 = dist2.astype('float64')
@@ -78,7 +67,7 @@ def augmentor(img):
     canvas[TH:2 * TH, TW:2 * TW] = pseudo_binarized
     points = []
     count = 0
-
+    
     while len(points) < 1:
         count += 1
         if count > 50:
