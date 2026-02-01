@@ -1,0 +1,56 @@
+{
+    "exp_name": "comref_basic_local",
+    "description": "Testing the architecture locally.",
+    "wandb_mode": "online",
+    "wandb_project": "comref",
+    "dirs": {
+        "results_dir": "/home/ptorras/Documents/comref_experiments",
+        "base_data_dir": "/home/ptorras/Documents/Datasets/COMREF/CleanupSamples",
+        "splits_file": "splits.json",
+        "vocab_data": "vocab.json"
+    },
+    "data": {
+        "target_shape": [800, 256],
+        "target_seqlen": 200,
+        "aug_pipeline": null,
+        "stretch": "fit",
+        "hflip": false
+    },
+    "model": {
+        "model_name": "str",
+        "model_weights": "str",
+        "nheads": 8,
+        "d_encoder": 512,
+        "d_ffw": 2048,
+        "encoder_layers": 4,
+        "dropout": 0.3,
+        "activation": "relu",
+        "output_classes": 220
+    },
+    "train": {
+        "batch_size": 24,
+        "device": "cuda",
+        "grad_clip": null,
+        "max_epochs": 5000,
+        "learning_rate": 1e-5,
+        "optimizer": "adamw",
+        "save_every": 1,
+        "eval_every": 1,
+        "weight_decay": 1e-3,
+        "workers": 8,
+        "plateau_sched": false,
+        "plateau_factor": 0.1,
+        "plateau_iters": 3,
+        "plateau_thresh": 0.01,
+        "plateau_min": 1e-7,
+        "warmup_sched": false,
+        "warmup_factor": 0.1,
+        "warmup_iters": 10000,
+        "cosann_sched": false,
+        "cosann_t0": 1,
+        "cosann_factor": 0.1,
+        "cosann_min": 1e-7,
+        "max_logging_epochs": 2,
+        "logging_threads": 4
+    }
+}

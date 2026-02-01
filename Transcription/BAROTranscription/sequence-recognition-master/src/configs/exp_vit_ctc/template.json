@@ -1,0 +1,59 @@
+{
+    "exp_name": "str",
+    "description": "str",
+    "wandb_mode": "str",
+    "wandb_project": "str",
+    "dirs": {
+        "results_dir": "str",
+        "base_data_dir": "str",
+        "splits_file": "str",
+        "vocab_data": "str"
+    },
+    "data": {
+        "target_shape": "Tuple",
+        "target_seqlen": "int",
+        "aug_pipeline": "str",
+        "stretch": null,
+        "hflip": "bool",
+        "max_length": "int"
+    },
+    "model": {
+        "model_name": "str",
+        "model_weights": "str",
+        "patch_size": "int",
+        "vocab_size": "int",
+        "model_dim": "int",
+        "enc_layers": "int",
+        "enc_heads": "int",
+        "mlp_dim": "int",
+        "dropout": "float",
+        "emb_dropout": "float",
+        "out_classes": "int"
+    },
+    "train": {
+        "batch_size": "int",
+        "device": "str",
+        "grad_clip": "float",
+        "max_epochs": "int",
+        "learning_rate": "float",
+        "optimizer": "str",
+        "save_every": "int",
+        "eval_every": "int",
+        "weight_decay": "float",
+        "workers": "int",
+        "plateau_sched": "bool",
+        "plateau_factor": "float",
+        "plateau_iters": "int",
+        "plateau_thresh": "float",
+        "plateau_min": "float",
+        "warmup_sched": "bool",
+        "warmup_factor": "float",
+        "warmup_iters": "int",
+        "cosann_sched": "bool",
+        "cosann_t0": "int",
+        "cosann_factor": "float",
+        "cosann_min": "float",
+        "max_logging_epochs": "int",
+        "logging_threads": "int"
+    }
+}

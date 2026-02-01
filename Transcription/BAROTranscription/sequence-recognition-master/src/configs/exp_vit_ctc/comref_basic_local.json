@@ -1,0 +1,59 @@
+{
+    "exp_name": "comref_basic_local",
+    "description": "A test of the ViT CTC model in a local setting.",
+    "wandb_mode": "online",
+    "wandb_project": "COMREF",
+    "dirs": {
+        "results_dir": "/home/ptorras/Documents/comref_experiments",
+        "base_data_dir": "/home/ptorras/Documents/Datasets/COMREF/CleanupSamples",
+        "splits_file": "splits.json",
+        "vocab_data": "vocab.json"
+    },
+    "data": {
+        "target_shape": [128, 128],
+        "target_seqlen": 200,
+        "aug_pipeline": null,
+        "stretch": null,
+        "hflip": false,
+        "max_length": null
+    },
+    "model": {
+        "model_name": "ctc_vit",
+        "model_weights": null,
+        "patch_size": 8,
+        "vocab_size": 220,
+        "model_dim": 256,
+        "enc_layers": 4,
+        "enc_heads": 8,
+        "mlp_dim": 2048,
+        "dropout": 0.25,
+        "emb_dropout": 0.25,
+        "out_classes": 220
+    },
+    "train": {
+        "batch_size": 48,
+        "device": "cuda",
+        "grad_clip": null,
+        "max_epochs": 5000,
+        "learning_rate": 1e-5,
+        "optimizer": "adamw",
+        "save_every": 1,
+        "eval_every": 1,
+        "weight_decay": 0.001,
+        "workers": 8,
+        "plateau_sched": false,
+        "plateau_factor": 0.1,
+        "plateau_iters": 3,
+        "plateau_thresh": 0.01,
+        "plateau_min": 1e-7,
+        "warmup_sched": false,
+        "warmup_factor": 0.1,
+        "warmup_iters": 10000,
+        "cosann_sched": false,
+        "cosann_t0": 1,
+        "cosann_factor": 0.1,
+        "cosann_min": 1e-7,
+        "max_logging_epochs": 2,
+        "logging_threads": 4
+    }
+}

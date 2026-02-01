@@ -1,0 +1,63 @@
+{
+    "exp_name": "exp_vgg_crnn_dag003_borg",
+    "description": "Training a VGG CRNN for the recognition of borg Cipher words.",
+    "cipher": "borg",
+    "wandb_mode": "online",
+    "wandb_project": "HIP",
+    "dirs": {
+        "results_dir": "/data2fast/users/ptorras/hip",
+        "base_data_dir": "/data2fast/users/ptorras/borg_moha",
+        "training_file": "gt_words_training.json",
+        "training_root": "words",
+        "validation_file": "gt_words_validation.json",
+        "validation_root": "words",
+        "test_file": "gt_words_test.json",
+        "test_root": "words",
+        "vocab_data": "vocab.json"
+    },
+    "data": {
+        "target_shape": [640, 96],
+        "target_seqlen": 18,
+        "aug_pipeline": "basic_decrypt",
+        "hflip": false,
+        "stretch": 2.5
+    },
+    "model": {
+        "model_name": "VggCRNN",
+        "model_weights": null,
+        "vgg_type": 19,
+        "vgg_batchnorm": true,
+        "vgg_pretrained": true,
+        "lstm_layers": 4,
+        "lstm_hidden_size": 512,
+        "blstm": true,
+        "dropout": 0.4,
+        "output_classes": 85
+    },
+    "train": {
+        "batch_size": 12,
+        "device": "cuda",
+        "grad_clip": null,
+        "max_epochs": 1000,
+        "learning_rate": 1e-4,
+        "optimizer": "adamw",
+        "save_every": 1,
+        "eval_every": 1,
+        "weight_decay": 1e-3,
+        "workers": 8,
+        "plateau_sched": true,
+        "plateau_factor": 0.1,
+        "plateau_iters": 10,
+        "plateau_thresh": 0.01,
+        "plateau_min": 1e-7,
+        "warmup_sched": false,
+        "warmup_factor": 0.1,
+        "warmup_iters": 10000,
+        "cosann_sched": false,
+        "cosann_t0": 0,
+        "cosann_factor": 0.1,
+        "cosann_min": 1e-7,
+        "max_logging_epochs": 2,
+        "logging_threads": 4
+    }
+}
