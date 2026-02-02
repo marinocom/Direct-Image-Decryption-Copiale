@@ -5,18 +5,33 @@
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.0+-green.svg)](https://opencv.org/)
 [![HistoCrypt](https://img.shields.io/badge/HistoCrypt-2026-purple.svg)](https://histocrypt.org/)
 
-
 This repo serves as the reflection of my work in the DECRYPT project as a scholarship intern at Centre de Visió per Computador (CVC) and my FDP with them. Transcription, decryption and 'pixel-hacking' of the Copiale manuscript.
+
 
 An end-to-end neural architecture for direct decryption of historical encrypted manuscript images, bypassing traditional transcription stages to reduce error propagation in cipher decipherment.
 
 This project introduces **Pixel Hacking**, a novel paradigm that directly maps encrypted manuscript images to decrypted plaintext in a single model, eliminating the intermediate transcription bottleneck that plagues traditional two-stage cryptanalysis pipelines.
 
-*🔐 Submitted to HistoCrypt 2026 - International Conference on Historical Cryptology*
-![histocrypt](docs/images/histocrypt.png)
+*<img src="docs/images/histocrypt_logo.png" alt="HistoCrypt" height="20"/> Submitted to HistoCrypt 2026 - International Conference on Historical Cryptology*
 
-![Pipeline Comparison](docs/images/pipeline_comparison.png)
-*Traditional two-stage pipeline vs. Pixel Hacking end-to-end approach*
+
+<table>
+<tr>
+<td width="50%">
+
+![Traditional Pipeline](docs/images/transcription_decryption.png)
+*Traditional two-stage pipeline: Transcription → Decryption*
+
+</td>
+<td width="50%">
+
+![Pixel Hacking](docs/images/pixel_hacking.png)
+*Pixel Hacking: Direct end-to-end decryption*
+
+</td>
+</tr>
+</table>
+
 
 ## The Problem
 
@@ -233,9 +248,6 @@ This work establishes that:
 - Bluche, T., Louradour, J., & Messina, R. (2017). *Scan, Attend and Read: End-to-End Handwritten Paragraph Recognition*. ICDAR.
 - Graves, A., et al. (2006). *Connectionist Temporal Classification*. ICML.
 
-## License
-
-This project is developed for research and educational purposes. Deployment requires appropriate attribution and acknowledgment of the DECRYPT project and RRC datasets.
 
 *This work represents a proof-of-concept system for historical cipher decipherment. It is intended to augment expert analysis rather than replace human cryptographers.*
 
@@ -243,4 +255,3 @@ This project is developed for research and educational purposes. Deployment requ
 
 **Contact**: marino.oliveros@autonoma.cat  
 **Project Year**: 2025/26  
-**Conference Submission**: HistoCrypt 2026 (Under Review)
