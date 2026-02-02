@@ -7,7 +7,6 @@
 
 This repo serves as the reflection of my work in the DECRYPT project as a scholarship intern at Centre de Visió per Computador (CVC) and my FDP with them. Transcription, decryption and 'pixel-hacking' of the Copiale manuscript.
 
-
 An end-to-end neural architecture for direct decryption of historical encrypted manuscript images, bypassing traditional transcription stages to reduce error propagation in cipher decipherment.
 
 This project introduces **Pixel Hacking**, a novel paradigm that directly maps encrypted manuscript images to decrypted plaintext in a single model, eliminating the intermediate transcription bottleneck that plagues traditional two-stage cryptanalysis pipelines.
@@ -85,7 +84,7 @@ Comprehensive pipeline produces 115,000+ Copiale-like training images from histo
 
 **Augmentation Suite**: Gaussian noise, random erosion/dilation, gamma correction, Kanungo degradation, geometric transformations (rotation ±3°, shearing, scaling, cropping)
 
-![Synthetic Data Stages](docs/images/text_stages_comparisons.png)
+<img src="docs/images/text_stages_comparisons.png" alt="Synthetic Data Stages" width="70%"/>
 *Progression from plaintext to augmented Copiale-like images*
 
 ## Results & Validation
@@ -146,6 +145,8 @@ pillow>=9.0.0
 
 ## Repository Structure
 
+Only dataaset samples were included as the entire size of the datasets is too big.
+
 ```
 PIXELHACKING-COPIALE/
 ├── Datasets/
@@ -185,15 +186,6 @@ PIXELHACKING-COPIALE/
         └── copialeTranscriptionVocabulary.json
 ```
 
-## Sequence Length Experiment
-
-Models exhibit distinct behavior patterns based on text length:
-
-**Synthetic Data**: Decryption success decreases with length (100% at 3-12 chars → 84% at 70 chars) due to increased complexity
-
-**Copiale Manuscript**: Struggles with very short sequences (<10 tokens, ~35% accuracy) due to insufficient context, stabilizes at ~50% for standard line lengths (12-40 tokens)
-
-This divergence reveals that synthetic models may overfit to training length distributions, while real manuscripts require minimum linguistic context for reliable decryption.
 
 ## Future Enhancements
 
@@ -218,23 +210,17 @@ This work establishes that:
 
 **Current State**: Pixel Hacking serves as a tool for augmenting human expert analysis rather than replacing it, offering meaningful accuracy improvements that reduce manual effort in historical cipher decipherment.
 
-## Ethical & Research Considerations
-
-**Academic Integrity**: This work builds upon DECRYPT project research and utilizes Robust Reading Competition datasets. Code incorporates CRNN implementations from CVC researchers (Jialuo Chen, Pau Torras) and augmentation techniques from Marçal et al.
-
-**Open Science**: Methodology fully documented to enable replication and extension by historical cryptology community.
-
-**Limitations**: Models trained primarily on synthetic data; real-world performance requires domain-specific fine-tuning. Not suitable for production decipherment without expert oversight.
 
 ## Team & Acknowledgments
 
 **Author**: Marino Oliveros Blanco  
 **Supervisor**: Dr. Alicia Fornés (CVC Document Analysis Group)  
-**Institution**: Universitat Autònoma de Barcelona, Escola d'Enginyeria
+**Institution**: Universitat Autònoma de Barcelona, Escola d'Enginyeria & Computer Vision Center (CVC)
 
 **Research Environment**: Computer Vision Center (CVC) - 8 GPUs (6× RTX 3090, 2× Quadro RTX 6000)
 
 **Special Thanks**:
+- Alicia Fornés for guidance and supervision
 - DECRYPT project for standardized datasets and vocabulary
 - Robust Reading Competition for Copiale manuscript images
 - Jialuo Chen, Lei Kang, Pau Torras, Marçal Rusiñol for CRNN and augmentation code
