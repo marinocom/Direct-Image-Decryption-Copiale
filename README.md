@@ -42,10 +42,6 @@ Historical encrypted manuscripts present unique challenges at the intersection o
 
 The **Copiale Cipher**—a 105-page 18th-century German manuscript with ~75,000 handwritten characters from a 90+ symbol alphabet—exemplifies these challenges. Despite successful decipherment in 2011, the traditional approach remains vulnerable to cascading errors.
 
-<div align="center">
-  <img src="Datasets/CopialeOriginalManuscriptSample/img/T2_0008.png" alt="Synthetic Data Stages" width="70%"/>
-  <p><em><strong>Copiale Sample Image RRC></em></p>
-</div>
 
 ## Our Solution
 
