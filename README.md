@@ -12,7 +12,7 @@ An end-to-end neural architecture for direct decryption of historical encrypted 
 
 This project introduces **Pixel Hacking**, a novel paradigm that directly maps encrypted manuscript images to decrypted plaintext in a single model, eliminating the intermediate transcription bottleneck that plagues traditional two-stage cryptanalysis pipelines.
 
-*<img src="docs/images/histocrypt_logo.png" alt="HistoCrypt" height="20"/> Submitted to HistoCrypt 2026 - International Conference on Historical Cryptology*
+*<img src="docs/images/histocrypt.png" alt="HistoCrypt" height="20"/> Submitted to HistoCrypt 2026 - International Conference on Historical Cryptology*
 
 
 <table>
