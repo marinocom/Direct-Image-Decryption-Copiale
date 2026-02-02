@@ -11,7 +11,7 @@ An end-to-end neural architecture for direct decryption of historical encrypted 
 
 This project introduces **Pixel Hacking**, a novel paradigm that directly maps encrypted manuscript images to decrypted plaintext in a single model, eliminating the intermediate transcription bottleneck that plagues traditional two-stage cryptanalysis pipelines.
 
-*<img src="docs/images/histocrypt.png" alt="HistoCrypt" height="20"/> Submitted to HistoCrypt 2026 - International Conference on Historical Cryptology*
+**<img src="docs/images/histocrypt.png" alt="HistoCrypt" height="20"/> Submitted to HistoCrypt 2026 - International Conference on Historical Cryptology**
 
 
 <table>
@@ -41,6 +41,11 @@ Historical encrypted manuscripts present unique challenges at the intersection o
 - **Information Loss**: Converting images to discrete symbols discards visual features (confidence, spacing, degradation patterns)
 
 The **Copiale Cipher**—a 105-page 18th-century German manuscript with ~75,000 handwritten characters from a 90+ symbol alphabet—exemplifies these challenges. Despite successful decipherment in 2011, the traditional approach remains vulnerable to cascading errors.
+
+<div align="center">
+  <img src="Datasets/CopialeOriginalManusriptSamples/img/T2_0000.png" alt="Synthetic Data Stages" width="70%"/>
+  <p><em><strong>Copiale Sample Image RRC></em></p>
+</div>
 
 ## Our Solution
 
@@ -84,8 +89,10 @@ Comprehensive pipeline produces 115,000+ Copiale-like training images from histo
 
 **Augmentation Suite**: Gaussian noise, random erosion/dilation, gamma correction, Kanungo degradation, geometric transformations (rotation ±3°, shearing, scaling, cropping)
 
-<img src="docs/images/text_stages_comparisons.png" alt="Synthetic Data Stages" width="70%"/>
-*Progression from plaintext to augmented Copiale-like images*
+<div align="center">
+  <img src="docs/images/text_stages_comparisons.png" alt="Synthetic Data Stages" width="55%"/>
+  <p><em><strong>Progression from plaintext to augmented Copiale-like images</strong></em></p>
+</div>
 
 ## Results & Validation
 
