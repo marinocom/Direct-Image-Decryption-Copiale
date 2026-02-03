@@ -1,15 +1,15 @@
-# Pixel Hacking: Direct Image-to-Plaintext Decryption of Historical Encrypted Manuscripts
+# Direct Image Decryption: Direct Image-to-Plaintext Decryption of Historical Encrypted Manuscripts
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.0+-green.svg)](https://opencv.org/)
 [![HistoCrypt](https://img.shields.io/badge/HistoCrypt-2026-purple.svg)](https://histocrypt.org/)
 
-This repo serves as the reflection of my work in the DECRYPT project as a scholarship intern at Centre de Visió per Computador (CVC) and my FDP with them. Transcription, decryption and 'pixel-hacking' of the Copiale manuscript.
+This repo serves as the reflection of my work in the DECRYPT project as a scholarship intern at Centre de Visió per Computador (CVC) and my FDP with them. Transcription, decryption and 'Direct Image Decryption' of the Copiale manuscript.
 
 An end-to-end neural architecture for direct decryption of historical encrypted manuscript images, bypassing traditional transcription stages to reduce error propagation in cipher decipherment.
 
-This project introduces **Pixel Hacking**, a novel paradigm that directly maps encrypted manuscript images to decrypted plaintext in a single model, eliminating the intermediate transcription bottleneck that plagues traditional two-stage cryptanalysis pipelines.
+This project introduces **Direct Image Decryption**, a novel paradigm that directly maps encrypted manuscript images to decrypted plaintext in a single model, eliminating the intermediate transcription bottleneck that plagues traditional two-stage cryptanalysis pipelines.
 
 **<img src="docs/images/histocrypt.png" alt="HistoCrypt" height="20"/> Submitted to HistoCrypt 2026 - International Conference on Historical Cryptology**
 
@@ -24,8 +24,8 @@ This project introduces **Pixel Hacking**, a novel paradigm that directly maps e
 </td>
 <td width="50%">
 
-![Pixel Hacking](docs/images/pixel_hacking.png)
-*Pixel Hacking: Direct end-to-end decryption*
+![Direct Image Decryption](docs/images/direct_image_decryption.png)
+*Direct Image Decryption: Direct end-to-end decryption*
 
 </td>
 </tr>
@@ -45,7 +45,7 @@ The **Copiale Cipher**—a 105-page 18th-century German manuscript with ~75,000 
 
 ## Our Solution
 
-**Pixel Hacking** learns the direct mapping from encrypted manuscript images to decrypted plaintext using attention-based sequence-to-sequence architecture. By maintaining continuous visual representations throughout the pipeline, the model:
+**Direct Image Decryption** learns the direct mapping from encrypted manuscript images to decrypted plaintext using attention-based sequence-to-sequence architecture. By maintaining continuous visual representations throughout the pipeline, the model:
 
 - Eliminates transcription-related error propagation
 - Removes the manual transcription bottleneck
@@ -58,7 +58,7 @@ The **Copiale Cipher**—a 105-page 18th-century German manuscript with ~75,000 
 Encrypted Manuscript Image → CRNN Feature Extractor → Attention-Based LSTM Decoder → Decrypted Plaintext
 ```
 
-**Core Innovation**: Unlike traditional pipelines that commit to discrete symbol decisions early (blocking gradient flow), Pixel Hacking maintains continuous representations, allowing visual features to adapt directly to decryption requirements through end-to-end backpropagation.
+**Core Innovation**: Unlike traditional pipelines that commit to discrete symbol decisions early (blocking gradient flow), Direct Image Decryption maintains continuous representations, allowing visual features to adapt directly to decryption requirements through end-to-end backpropagation.
 
 ## Technical Architecture
 
@@ -96,7 +96,7 @@ Comprehensive evaluation across synthetic and authentic historical data:
 
 ### Synthetic Data Performance (115,000 images)
 
-| Dataset | Metric | Two-Stage | Pixel Hacking | Δ |
+| Dataset | Metric | Two-Stage | Direct Image Decryption | Δ |
 |---------|--------|-----------|---------------|---|
 | **Faust (in-dist)** | Token Acc. | 91.3% | **92.4%** | +1.1% |
 | | WER | 20.6% | **10.5%** | -49% |
@@ -105,14 +105,14 @@ Comprehensive evaluation across synthetic and authentic historical data:
 
 ### Original Copiale Manuscript (2,000 images)
 
-| Metric | Two-Stage | Pixel Hacking | Δ |
+| Metric | Two-Stage | Direct Image Decryption | Δ |
 |--------|-----------|---------------|---|
 | Token Accuracy | 39.6% | **51.4%** | +11.8% |
 | WER | 89.0% | **76.0%** | -13.0% |
 | CER | 43.0% | **39.3%** | -3.7% |
 
 **Key Findings**:
-- Pixel Hacking outperforms traditional approach on both synthetic and real data
+- Direct Image Decryption outperforms traditional approach on both synthetic and real data
 - Advantage increases under challenging conditions (11.8% on real vs. 1.1% on synthetic)
 - Performance gap on real data reflects data scarcity (57× less real than synthetic training examples) rather than fundamental domain incompatibility
 
@@ -124,7 +124,7 @@ While transcription generalizes well (91.1% accuracy on real manuscripts), decry
 - Models require tens of thousands of examples to learn robust linguistic patterns
 - Only 2,000 real manuscript images available vs. 115,000 synthetic training samples
 
-Despite severe data limitations, Pixel Hacking's consistent advantage validates that end-to-end learning reduces error propagation regardless of training set size.
+Despite severe data limitations, Direct Image Decryption's consistent advantage validates that end-to-end learning reduces error propagation regardless of training set size.
 
 ## Technical Requirements
 
@@ -151,17 +151,17 @@ pillow>=9.0.0
 Only dataaset samples were included as the entire size of the datasets is too big.
 
 ```
-PIXELHACKING-COPIALE/
+Direct-Image-Decryption-COPIALE/
 ├── Datasets/
 │   ├── CopialeOriginalManuscriptSample/   # Original Copiale manuscript images
 │   ├── FaustSample/                       # Synthetic Faust dataset samples
 │   └── TextFiles/                         # Source text files for generation
 │
-├── Pixel Hacking/
-│   ├── copialePixelHackingVocabulary.json
-│   ├── inferencePixelHackingCaseInsensitive.py
-│   ├── inferencePixelHackingCaseSensitive.py
-│   └── pixelHackingmodelCreation.py
+├── Direct Image Decryption/
+│   ├── copialeDirectImageDecryptionVocabulary.json
+│   ├── inferenceDirectImageDecryptionCaseInsensitive.py
+│   ├── inferenceDirectImageDecryptionCaseSensitive.py
+│   └── directImageDecryptionModelCreation.py
 │
 ├── Synthetic Data Generation/
 │   ├── GenerationTools/
@@ -211,7 +211,7 @@ This work establishes that:
 3. **Visual feature extraction transfers well**: Transcription maintains 91% accuracy on real manuscripts despite synthetic training
 4. **Decipherment requires scale**: Current accuracy (51%) represents performance ceiling with 2,000 training examples; practical deployment requires 10,000-50,000 real manuscript images
 
-**Current State**: Pixel Hacking serves as a tool for augmenting human expert analysis rather than replacing it, offering meaningful accuracy improvements that reduce manual effort in historical cipher decipherment.
+**Current State**: Direct Image Decryption serves as a tool for augmenting human expert analysis rather than replacing it, offering meaningful accuracy improvements that reduce manual effort in historical cipher decipherment.
 
 
 ## Team & Acknowledgments

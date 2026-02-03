@@ -1,15 +1,15 @@
 """
-PIXEL HACKING inference (case-insensitive).
+DIRECT IMAGE DECRYPTION inference (case-sensitive).
 
-Runs the trained PIXEL HACKING (8-head attention) model. 
+Runs the trained DIRECT IMAGE DECRYPTION (8-head attention) model. 
 Supports single-image decryption or batch evaluation on a JSON
-test set (filename → plaintext). All metrics are computed case-insensitively.
+test set (filename → plaintext). All metrics are computed case-sensitively.
 Set paths in main() before running.
 
 All evaluation metrics (character/sequence accuracy, edit distance, BLEU, WER/CER,
-decryption success rate) are computed in a case-insensitive way: predictions and
-references are lowercased before comparison, so e.g. "CopiAle" and "copiale"
-count as an exact match.
+decryption success rate) are computed in a case-sensitive way: predictions and
+references are compared as-is (no lowercasing), so e.g. "CopiAle" and "copiale"
+count as different.
 
 Outputs (when save_results=True): CSV results, metrics summary, analysis plots,
 and best/worst examples.
@@ -36,7 +36,7 @@ warnings.filterwarnings('ignore')
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 
-from pixelHackingmodelCreationOCT25 import (
+from directImageDecryptionModelCreation import (
     CopialeImageDecryptionModelWithCRNN, 
     CopialeImageDecryptionDataset,
     collate_fn
@@ -84,84 +84,76 @@ class InferenceDataset:
     def indices_to_plaintext(self, indices):
         """Convert indices back to plaintext"""
         chars = []
+        skip_tokens = {'<SOS>', '< SOS >', '<EOS>', '<PAD>'}
         for idx in indices:
             char = self.plaintext_vocab['idx_to_char'].get(str(idx), '<UNK>')
-            if char in ['< SOS >', '<EOS>', '<PAD>']:
+            if char in skip_tokens:
                 continue
             chars.append(char)
         return ''.join(chars)
 
 
 class BoundedMetrics:
-    """Class to compute bounded metrics for decryption evaluation with case-insensitive comparison"""
+    """Class to compute bounded metrics for decryption evaluation with case-sensitive comparison"""
     
     def __init__(self):
         self.metrics = {}
     
-    def _normalize_text(self, text: str) -> str:
-        """Normalize text for case-insensitive comparison"""
-        return text.lower().strip()
-    
     def character_accuracy(self, predictions: List[str], references: List[str]) -> float:
-        """Calculate character-level accuracy (0-1) - case insensitive"""
+        """Calculate character-level accuracy (0-1) - case sensitive"""
         total_chars = 0
         correct_chars = 0
         
         for pred, ref in zip(predictions, references):
-            # normalize both texts to lowercase
-            pred_norm = self._normalize_text(pred)
-            ref_norm = self._normalize_text(ref)
+            pred_text = pred.strip()
+            ref_text = ref.strip()
             
-            # align lengths by taking minimum
-            min_len = min(len(pred_norm), len(ref_norm))
-            total_chars += max(len(pred_norm), len(ref_norm))
+            min_len = min(len(pred_text), len(ref_text))
+            total_chars += max(len(pred_text), len(ref_text))
             
-            # count correct characters at aligned positions
             for i in range(min_len):
-                if pred_norm[i] == ref_norm[i]:
+                if pred_text[i] == ref_text[i]:
                     correct_chars += 1
         
         return correct_chars / total_chars if total_chars > 0 else 0.0
     
     def normalized_edit_distance(self, predictions: List[str], references: List[str]) -> float:
-        """Calculate normalized edit distance (0-1, lower is better) - case insensitive"""
+        """Calculate normalized edit distance (0-1, lower is better) - case sensitive"""
         distances = []
         for pred, ref in zip(predictions, references):
-            # normalize both texts to lowercase
-            pred_norm = self._normalize_text(pred)
-            ref_norm = self._normalize_text(ref)
+            pred_text = pred.strip()
+            ref_text = ref.strip()
             
-            edit_dist = editdistance.eval(pred_norm, ref_norm)
-            max_len = max(len(pred_norm), len(ref_norm), 1)
+            edit_dist = editdistance.eval(pred_text, ref_text)
+            max_len = max(len(pred_text), len(ref_text), 1)
             normalized_dist = edit_dist / max_len
             distances.append(normalized_dist)
         
         return np.mean(distances)
     
     def sequence_accuracy(self, predictions: List[str], references: List[str]) -> float:
-        """Calculate exact sequence match accuracy (0-1) - case insensitive"""
+        """Calculate exact sequence match accuracy (0-1) - case sensitive"""
         exact_matches = 0
         for pred, ref in zip(predictions, references):
-            pred_norm = self._normalize_text(pred)
-            ref_norm = self._normalize_text(ref)
-            if pred_norm == ref_norm:
+            pred_text = pred.strip()
+            ref_text = ref.strip()
+            if pred_text == ref_text:
                 exact_matches += 1
         
         return exact_matches / len(predictions) if predictions else 0.0
     
     def bounded_bleu_score(self, predictions: List[str], references: List[str]) -> float:
-        """Calculate character-level BLEU score approximation (0-1) - case insensitive"""
+        """Calculate character-level BLEU score approximation (0-1) - case sensitive"""
         try:
             from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
             smoothie = SmoothingFunction().method4
             
             scores = []
             for pred, ref in zip(predictions, references):
-                # normalize and convert to character lists
-                pred_norm = self._normalize_text(pred)
-                ref_norm = self._normalize_text(ref)
-                pred_chars = list(pred_norm)
-                ref_chars = [list(ref_norm)]
+                pred_text = pred.strip()
+                ref_text = ref.strip()
+                pred_chars = list(pred_text)
+                ref_chars = [list(ref_text)]
                 
                 if len(pred_chars) == 0:
                     scores.append(0.0)
@@ -171,24 +163,23 @@ class BoundedMetrics:
             
             return np.mean(scores)
         except ImportError:
-            # fallback to simple n-gram overlap
             return self._simple_ngram_overlap(predictions, references)
     
     def _simple_ngram_overlap(self, predictions: List[str], references: List[str], n=4) -> float:
-        """Simple n-gram overlap as BLEU approximation - case insensitive"""
+        """Simple n-gram overlap as BLEU approximation - case sensitive"""
         scores = []
         for pred, ref in zip(predictions, references):
-            pred_norm = self._normalize_text(pred)
-            ref_norm = self._normalize_text(ref)
+            pred_text = pred.strip()
+            ref_text = ref.strip()
             
-            if len(pred_norm) == 0:
+            if len(pred_text) == 0:
                 scores.append(0.0)
                 continue
             
             overlap_scores = []
-            for gram_size in range(1, min(n + 1, len(pred_norm) + 1)):
-                pred_grams = set([pred_norm[i:i+gram_size] for i in range(len(pred_norm) - gram_size + 1)])
-                ref_grams = set([ref_norm[i:i+gram_size] for i in range(len(ref_norm) - gram_size + 1)])
+            for gram_size in range(1, min(n + 1, len(pred_text) + 1)):
+                pred_grams = set([pred_text[i:i+gram_size] for i in range(len(pred_text) - gram_size + 1)])
+                ref_grams = set([ref_text[i:i+gram_size] for i in range(len(ref_text) - gram_size + 1)])
                 
                 if len(pred_grams) == 0:
                     overlap_scores.append(0.0)
@@ -201,23 +192,19 @@ class BoundedMetrics:
         return np.mean(scores)
     
     def bounded_wer_cer(self, predictions: List[str], references: List[str]) -> Tuple[float, float]:
-        """Calculate bounded WER and CER (0-1, lower is better) - case insensitive"""
+        """Calculate bounded WER and CER (0-1, lower is better) - case sensitive"""
         try:
-            # Normalize all texts to lowercase for WER/CER calculation
-            predictions_norm = [self._normalize_text(pred) for pred in predictions]
-            references_norm = [self._normalize_text(ref) for ref in references]
+            pred_text = [p.strip() for p in predictions]
+            ref_text = [r.strip() for r in references]
             
-            # standard WER/CER calculation
-            word_error_rate = wer(references_norm, predictions_norm)
-            char_error_rate = cer(references_norm, predictions_norm)
+            word_error_rate = wer(ref_text, pred_text)
+            char_error_rate = cer(ref_text, pred_text)
             
-            # bound to [0, 1]
             word_error_rate = min(1.0, max(0.0, word_error_rate))
             char_error_rate = min(1.0, max(0.0, char_error_rate))
             
         except Exception as e:
             print(f"Warning: jiwer failed ({e}), using edit distance approximation")
-            # fallback to edit distance
             char_error_rate = self.normalized_edit_distance(predictions, references)
             word_error_rate = self.normalized_edit_distance(
                 [' '.join(pred.split()) for pred in predictions],
@@ -227,7 +214,7 @@ class BoundedMetrics:
         return word_error_rate, char_error_rate
     
     def compute_all_metrics(self, predictions: List[str], references: List[str]) -> Dict[str, float]:
-        """Compute all bounded metrics - case insensitive"""
+        """Compute all bounded metrics - case sensitive"""
         char_acc = self.character_accuracy(predictions, references)
         seq_acc = self.sequence_accuracy(predictions, references)
         edit_dist = self.normalized_edit_distance(predictions, references)
@@ -241,7 +228,7 @@ class BoundedMetrics:
             'bleu_score': bleu,
             'word_error_rate': wer_score,
             'character_error_rate': cer_score,
-            'decryption_success_rate': 1.0 - edit_dist,  # inverse of edit distance
+            'decryption_success_rate': 1.0 - edit_dist,
         }
 
 
@@ -282,15 +269,11 @@ class DecryptionInference:
     def decrypt_single_image(self, image_path: str, max_length: int = 200) -> str:
         """Decrypt a single image"""
         try:
-            # load and preprocess image
             image = self.inference_dataset.load_and_preprocess_image(image_path)
-            image_tensor = image.unsqueeze(0).to(self.device)  # add batch dimension
+            image_tensor = image.unsqueeze(0).to(self.device)
             
             with torch.no_grad():
-                # generate output sequence
                 output_indices = self.model(image_tensor, max_length=max_length)
-                
-                # convert back to text
                 output_text = self.inference_dataset.indices_to_plaintext(
                     output_indices[0].cpu().numpy()
                 )
@@ -305,7 +288,6 @@ class DecryptionInference:
                         save_results: bool = True, output_dir: str = 'inference_results') -> Dict:
         """Evaluate model on a complete dataset"""
         
-        # load dataset
         with open(data_file, 'r') as f:
             data = json.load(f)
         
@@ -315,7 +297,6 @@ class DecryptionInference:
         
         print(f"Evaluating on {len(data)} samples...")
         
-        # process each image
         for filename, item in tqdm(data.items(), desc="Processing images"):
             image_path = Path(image_dir) / filename
             
@@ -323,15 +304,12 @@ class DecryptionInference:
                 print(f"Warning: Image not found: {image_path}")
                 continue
             
-            # decrypt image
             predicted_text = self.decrypt_single_image(image_path, max_length)
             true_text = item['plaintext']
             
             predictions.append(predicted_text)
             references.append(true_text)
             
-            # store individual result - compute both case-sensitive and case-insensitive distances
-            # for comparison purposes
             case_sensitive_edit_dist = editdistance.eval(predicted_text, true_text)
             case_insensitive_edit_dist = editdistance.eval(predicted_text.lower().strip(), true_text.lower().strip())
             
@@ -343,33 +321,25 @@ class DecryptionInference:
                 'edit_distance_case_insensitive': case_insensitive_edit_dist,
                 'normalized_edit_distance_case_sensitive': case_sensitive_edit_dist / max(len(true_text), 1),
                 'normalized_edit_distance_case_insensitive': case_insensitive_edit_dist / max(len(true_text), 1),
-                # use case-insensitive as the primary metric
-                'edit_distance': case_insensitive_edit_dist,
-                'normalized_edit_distance': case_insensitive_edit_dist / max(len(true_text), 1)
+                'edit_distance': case_sensitive_edit_dist,
+                'normalized_edit_distance': case_sensitive_edit_dist / max(len(true_text), 1)
             })
         
-        # calculate metrics (now case-insensitive)
         metrics = self.metrics_calculator.compute_all_metrics(predictions, references)
         
-        # save results if requested
         if save_results:
             os.makedirs(output_dir, exist_ok=True)
             
-            # save detailed results
             results_df = pd.DataFrame(results)
             results_df.to_csv(f"{output_dir}/detailed_results.csv", index=False)
             
-            # save metrics
             with open(f"{output_dir}/metrics.json", 'w') as f:
                 json.dump(metrics, f, indent=2)
             
-            # save predictions vs references
             comparison_df = pd.DataFrame({
                 'filename': [r['filename'] for r in results],
                 'predicted': predictions,
                 'reference': references,
-                'predicted_normalized': [pred.lower().strip() for pred in predictions],
-                'reference_normalized': [ref.lower().strip() for ref in references]
             })
             comparison_df.to_csv(f"{output_dir}/predictions_comparison.csv", index=False)
             
@@ -389,11 +359,10 @@ class DecryptionInference:
         detailed_results = results['detailed_results']
         metrics = results['metrics']
         
-        # create figure with subplots (added one more subplot for case comparison)
         fig, axes = plt.subplots(2, 4, figsize=(24, 12))
-        fig.suptitle('Image Decryption Model Analysis (Case-Insensitive)', fontsize=16)
+        fig.suptitle('Image Decryption Model Analysis (Case-Sensitive)', fontsize=16)
         
-        # 1. Metrics overview bar chart
+        # 1. Metrics overview
         metric_names = list(metrics.keys())
         metric_values = list(metrics.values())
         
@@ -404,16 +373,15 @@ class DecryptionInference:
         axes[0, 0].set_title('All Metrics Overview')
         axes[0, 0].set_ylim(0, 1)
         
-        # add value labels on bars
         for i, v in enumerate(metric_values):
             axes[0, 0].text(i, v + 0.01, f'{v:.3f}', ha='center', va='bottom')
         
-        # 2. Edit distance distribution (case-insensitive)
+        # 2. Edit distance distribution (case-sensitive)
         edit_distances = [r['normalized_edit_distance'] for r in detailed_results]
         axes[0, 1].hist(edit_distances, bins=20, color='lightcoral', alpha=0.7, edgecolor='black')
         axes[0, 1].axvline(np.mean(edit_distances), color='red', linestyle='--', 
                           label=f'Mean: {np.mean(edit_distances):.3f}')
-        axes[0, 1].set_xlabel('Normalized Edit Distance (Case-Insensitive)')
+        axes[0, 1].set_xlabel('Normalized Edit Distance (Case-Sensitive)')
         axes[0, 1].set_ylabel('Frequency')
         axes[0, 1].set_title('Edit Distance Distribution')
         axes[0, 1].legend()
@@ -428,9 +396,8 @@ class DecryptionInference:
         axes[0, 2].set_ylabel('Case-Insensitive Edit Distance')
         axes[0, 2].set_title('Case Sensitivity Impact')
         
-        # calculate improvement
-        improvement = np.mean(np.array(case_sensitive_distances) - np.array(case_insensitive_distances))
-        axes[0, 2].text(0.05, 0.95, f'Avg Improvement: {improvement:.3f}', 
+        diff = np.mean(np.array(case_insensitive_distances) - np.array(case_sensitive_distances))
+        axes[0, 2].text(0.05, 0.95, f'Avg diff (insens - sens): {diff:.3f}', 
                        transform=axes[0, 2].transAxes, bbox=dict(boxstyle="round", facecolor='wheat'))
         
         # 4. Text length analysis
@@ -444,7 +411,6 @@ class DecryptionInference:
         axes[0, 3].set_ylabel('Prediction Length')
         axes[0, 3].set_title('Length Correlation')
         
-        # calculate correlation
         correlation = np.corrcoef(ref_lengths, pred_lengths)[0, 1]
         axes[0, 3].text(0.05, 0.95, f'Correlation: {correlation:.3f}', 
                        transform=axes[0, 3].transAxes, bbox=dict(boxstyle="round", facecolor='wheat'))
@@ -472,8 +438,6 @@ class DecryptionInference:
         
         # 6. Top/Bottom examples
         sorted_results = sorted(detailed_results, key=lambda x: x['normalized_edit_distance'])
-        
-        # best examples
         best_examples = sorted_results[:3]
         worst_examples = sorted_results[-3:]
         
@@ -498,17 +462,15 @@ class DecryptionInference:
         axes[1, 1].axis('off')
         axes[1, 1].set_title('Best/Worst Examples')
         
-        # 7. Character frequency analysis (normalized to lowercase)
-        all_pred_chars = ''.join([pred.lower() for pred in results['predictions']])
-        all_ref_chars = ''.join([ref.lower() for ref in results['references']])
+        # 7. Character frequency (case-sensitive: no lowercasing)
+        all_pred_chars = ''.join(results['predictions'])
+        all_ref_chars = ''.join(results['references'])
         
         from collections import Counter
         pred_char_freq = Counter(all_pred_chars)
         ref_char_freq = Counter(all_ref_chars)
         
-        # get top 20 most common characters
         common_chars = sorted(ref_char_freq.keys(), key=lambda x: ref_char_freq[x], reverse=True)[:20]
-        
         pred_freqs = [pred_char_freq.get(char, 0) for char in common_chars]
         ref_freqs = [ref_char_freq[char] for char in common_chars]
         
@@ -517,22 +479,21 @@ class DecryptionInference:
         
         axes[1, 2].bar(x_pos - width/2, ref_freqs, width, label='Reference', alpha=0.8, color='skyblue')
         axes[1, 2].bar(x_pos + width/2, pred_freqs, width, label='Predicted', alpha=0.8, color='lightcoral')
-        
-        axes[1, 2].set_xlabel('Characters (Lowercase)')
+        axes[1, 2].set_xlabel('Characters')
         axes[1, 2].set_ylabel('Frequency')
-        axes[1, 2].set_title('Character Frequency Comparison')
+        axes[1, 2].set_title('Character Frequency Comparison (Case-Sensitive)')
         axes[1, 2].set_xticks(x_pos)
         axes[1, 2].set_xticklabels([repr(char) for char in common_chars], rotation=45)
         axes[1, 2].legend()
         
-        # 8. Histogram of case improvements
-        improvements = np.array(case_sensitive_distances) - np.array(case_insensitive_distances)
+        # 8. Histogram: case-insensitive vs case-sensitive difference
+        improvements = np.array(case_insensitive_distances) - np.array(case_sensitive_distances)
         axes[1, 3].hist(improvements, bins=20, color='lightgreen', alpha=0.7, edgecolor='black')
         axes[1, 3].axvline(np.mean(improvements), color='green', linestyle='--', 
                           label=f'Mean: {np.mean(improvements):.3f}')
-        axes[1, 3].set_xlabel('Edit Distance Improvement')
+        axes[1, 3].set_xlabel('Edit Distance (Case-Insens - Case-Sens)')
         axes[1, 3].set_ylabel('Frequency')
-        axes[1, 3].set_title('Case-Insensitive Improvement Distribution')
+        axes[1, 3].set_title('Case-Insensitive vs Case-Sensitive')
         axes[1, 3].legend()
         
         plt.tight_layout()
@@ -545,7 +506,7 @@ class DecryptionInference:
     def print_detailed_metrics(self, metrics: Dict):
         """Print detailed metrics with explanations"""
         print("\n" + "="*80)
-        print("IMAGE DECRYPTION METRICS REPORT (CASE-INSENSITIVE)")
+        print("IMAGE DECRYPTION METRICS REPORT (CASE-SENSITIVE)")
         print("="*80)
         
         print(f"\nACCURACY METRICS:")
@@ -559,7 +520,7 @@ class DecryptionInference:
         print(f"   Character Error Rate:     {metrics['character_error_rate']:.4f} (lower is better, min=0.0)")
         
         print(f"\nQUALITY METRICS:")
-        print(f"   BLEU Score:              {metrics['bleu_score']:.4f} (higher is better, max=1.0)")
+        print(f"   BLEU Score:               {metrics['bleu_score']:.4f} (higher is better, max=1.0)")
         
         print(f"\nPERFORMANCE SUMMARY:")
         avg_score = np.mean([
@@ -572,59 +533,48 @@ class DecryptionInference:
             1 - metrics['character_error_rate']
         ])
         print(f"   Overall Performance:      {avg_score:.4f} (composite score, max=1.0)")
-        print("\nNOTE: All metrics computed with case-insensitive comparison")
-        print("      (e.g., 'StudentS' vs 'students' counts as exact match)")
+        print("\nNOTE: All metrics computed with case-sensitive comparison")
+        print("      (e.g., 'CopiAle' and 'copiale' count as different)")
         print("="*80)
     
     def save_examples(self, results: Dict, output_dir: str, num_examples: int = 10):
         """Save detailed examples for manual inspection"""
         detailed_results = results['detailed_results']
         
-        # sort by case-insensitive edit distance
         sorted_results = sorted(detailed_results, key=lambda x: x['normalized_edit_distance'])
-        
-        # best and worst examples
         best_examples = sorted_results[:num_examples]
         worst_examples = sorted_results[-num_examples:]
         
-        # save to text files for easy reading
         with open(f"{output_dir}/best_examples.txt", 'w', encoding='utf-8') as f:
-            f.write("BEST IMAGE DECRYPTION EXAMPLES (Case-Insensitive Evaluation)\n")
+            f.write("BEST IMAGE DECRYPTION EXAMPLES (Case-Sensitive Evaluation)\n")
             f.write("="*80 + "\n\n")
             
             for i, ex in enumerate(best_examples):
-                f.write(f"EXAMPLE {i+1} (Case-Insensitive Edit Distance: {ex['normalized_edit_distance']:.4f})\n")
-                f.write(f"           (Case-Sensitive Edit Distance: {ex['normalized_edit_distance_case_sensitive']:.4f})\n")
+                f.write(f"EXAMPLE {i+1} (Case-Sensitive Edit Distance: {ex['normalized_edit_distance']:.4f})\n")
+                f.write(f"           (Case-Insensitive Edit Distance: {ex['normalized_edit_distance_case_insensitive']:.4f})\n")
                 f.write(f"File: {ex['filename']}\n")
                 f.write(f"True Text: {ex['true_text']}\n")
                 f.write(f"Predicted: {ex['predicted_text']}\n")
-                f.write(f"True Text (normalized): {ex['true_text'].lower().strip()}\n")
-                f.write(f"Predicted (normalized): {ex['predicted_text'].lower().strip()}\n")
                 f.write("-" * 80 + "\n\n")
         
-        # additional analysis file for case sensitivity impact
         with open(f"{output_dir}/case_sensitivity_analysis.txt", 'w', encoding='utf-8') as f:
-            f.write("CASE SENSITIVITY IMPACT ANALYSIS (IMAGE DECRYPTION)\n")
+            f.write("CASE SENSITIVITY COMPARISON (IMAGE DECRYPTION)\n")
             f.write("="*80 + "\n\n")
             
-            # find examples where case sensitivity made a big difference
             case_improvements = []
             for ex in detailed_results:
-                improvement = ex['normalized_edit_distance_case_sensitive'] - ex['normalized_edit_distance_case_insensitive']
-                if improvement > 0:  # cases where case-insensitive helped
-                    case_improvements.append((ex, improvement))
+                diff = ex['normalized_edit_distance_case_insensitive'] - ex['normalized_edit_distance_case_sensitive']
+                if diff < 0:  # case-insensitive was better (lower distance)
+                    case_improvements.append((ex, -diff))
             
-            # sort by improvement amount
             case_improvements.sort(key=lambda x: x[1], reverse=True)
             
-            f.write(f"TOTAL EXAMPLES WHERE CASE-INSENSITIVE HELPED: {len(case_improvements)}\n")
-            f.write(f"AVERAGE IMPROVEMENT: {np.mean([imp for _, imp in case_improvements]):.4f}\n\n")
-            
-            f.write("TOP EXAMPLES WHERE CASE-INSENSITIVE EVALUATION HELPED MOST:\n")
+            f.write(f"EXAMPLES WHERE CASE-INSENSITIVE EVAL WOULD HELP: {len(case_improvements)}\n\n")
+            f.write("TOP EXAMPLES (case-insensitive distance lower than case-sensitive):\n")
             f.write("-" * 80 + "\n\n")
             
             for i, (ex, improvement) in enumerate(case_improvements[:10]):
-                f.write(f"EXAMPLE {i+1} (Improvement: {improvement:.4f})\n")
+                f.write(f"EXAMPLE {i+1} (Improvement if case-insens: {improvement:.4f})\n")
                 f.write(f"File: {ex['filename']}\n")
                 f.write(f"True Text: {ex['true_text']}\n")
                 f.write(f"Predicted: {ex['predicted_text']}\n")
@@ -638,7 +588,6 @@ class DecryptionInference:
 def main():
     """main function for inference; set paths below."""
     
-    # configuration: set these paths for your environment
     model_path = "path/to/decipher_model.pth"
     vocab_path = "path/to/plaintext_vocabulary.json"
     data_file = "path/to/test_data.json"
@@ -647,25 +596,21 @@ def main():
     max_length = 200
     device = "cuda"
     
-    # optional: set to an image path for single-image decryption
     single_image = None
     
-    print("Starting image decryption inference (case-insensitive)...")
+    print("Starting image decryption inference (case-sensitive)...")
     print(f"Model: {model_path}")
     print(f"Vocabulary: {vocab_path}")
     print(f"Device: {device}")
-    print("Note: all evaluations are case-insensitive (e.g. 'CopiAle' == 'copiale').")
+    print("Note: all evaluations are case-sensitive (e.g. 'CopiAle' != 'copiale').")
     
-    # initialize inference
     inference = DecryptionInference(model_path, vocab_path, device)
     
     if single_image:
-        # single image decryption
         print(f"Decrypting single image: {single_image}")
         result = inference.decrypt_single_image(single_image, max_length)
         print(f"Decrypted text: {result}")
     else:
-        # full dataset evaluation
         print(f"Evaluating on dataset: {data_file}")
         results = inference.evaluate_dataset(
             data_file,
@@ -675,34 +620,19 @@ def main():
             output_dir=output_dir
         )
         
-        # print metrics
         inference.print_detailed_metrics(results['metrics'])
         
-        # print case sensitivity impact summary
         detailed_results = results['detailed_results']
-        case_improvements = []
-        for ex in detailed_results:
-            improvement = ex['normalized_edit_distance_case_sensitive'] - ex['normalized_edit_distance_case_insensitive']
-            if improvement > 0:
-                case_improvements.append(improvement)
+        case_insens_better = sum(1 for ex in detailed_results 
+                                if ex['normalized_edit_distance_case_insensitive'] < ex['normalized_edit_distance_case_sensitive'])
         
-        print(f"\nCASE SENSITIVITY IMPACT SUMMARY:")
-        print(f"   Examples improved by case-insensitive eval: {len(case_improvements)}/{len(detailed_results)} ({100*len(case_improvements)/len(detailed_results):.1f}%)")
-        if case_improvements:
-            print(f"   Average improvement: {np.mean(case_improvements):.4f}")
-            print(f"   Maximum improvement: {max(case_improvements):.4f}")
+        print(f"\nCASE SENSITIVITY SUMMARY:")
+        print(f"   Examples where case-insensitive would be better: {case_insens_better}/{len(detailed_results)} ({100*case_insens_better/len(detailed_results):.1f}%)")
         
-        # generate plots
         inference.generate_analysis_plots(results, output_dir)
-        
-        # save detailed examples
         inference.save_examples(results, output_dir)
         
         print(f"\nEvaluation complete. Check {output_dir}/ for detailed results.")
-        print(f"Key files:")
-        print(f"   - detailed_results.csv: full results with both case-sensitive and case-insensitive metrics")
-        print(f"   - case_sensitivity_analysis.txt: analysis of case sensitivity impact")
-        print(f"   - predictions_comparison.csv: includes normalized (lowercase) versions of texts")
 
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
 """
-PIXEL HACKING model creation and training (8-head attention).
+DIRECT IMAGE DECRYPTION model creation and training (8-head attention).
 
 Purpose
 -------
-Defines and trains a direct image-to-plaintext PIXEL HACKING model: cipher images
+Defines and trains a direct image-to-plaintext DIRECT IMAGE DECRYPTION model: cipher images
 are mapped to plaintext character sequences in one end-to-end pass. No separate OCR or transcription step is required.
 
 Architecture
@@ -967,7 +967,7 @@ def inference_example():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Load vocabulary
-    with open('decryption_vocabulary_crnn_pixelhacking.json', 'r') as f:
+    with open('copialeDirectImageDecryptionVocabulary.json', 'r') as f:
         vocab = json.load(f)
     
     # create a dummy dataset instance for vocabulary access
