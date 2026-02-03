@@ -242,5 +242,5 @@ This work establishes that:
 
 ---
 
-**Contact**: marino.oliveros@autonoma.cat  
+**Contact**: marino.oliverosblanco@gmail.com
 **Project Year**: 2025/26  
